@@ -4,6 +4,8 @@ Manage OpenVPN configurations in a web browser
 This is functional code serving as a rough draft for the project. 
 
 It is barebones and does not incorporate adequate security features for production use. 
+
+![Picture of Webadmin](webadmin.png)
 # Todo: 
 * Display status.log
 * Support multiple accounts
