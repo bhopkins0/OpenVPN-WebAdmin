@@ -1,6 +1,8 @@
 <?php
 session_start();
 include 'config.php';
+include 'Net/SSH2.php';
+
 if ($restrict2vpn == "1") {
 if ($_SERVER["REMOTE_ADDR"] !== $vpnserver) {
 echo <<<EOF
@@ -15,11 +17,11 @@ die();
 
 if ($_POST["pw"] && !isset($_SESSION["auth"])) {
 
-if ($_POST["pw"] !== $pw) {
+if ($_POST["pw"] !== $adminpw) {
 $res = "1";
 }
 
-if ($_POST["pw"] == $pw) {
+if ($_POST["pw"] == $adminpw) {
 $_SESSION["auth"] = "1";
 $_SESSION["key"] = random_int(1,9999999999);
 header("Refresh:0");
@@ -32,19 +34,30 @@ die();
 
 if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == $_SESSION["key"]) {
 $commonname = $_POST["commonname"];
-$conn = mysqli_connect($servername, $username, $password, $dbname);
+if (strlen($commonname) > 32 || !preg_match("/^[A-Za-z0-9]*$/", $commonname)) {
+$_SESSION["err"] = 4;
+header("Location: ".$_SERVER["PHP_SELF"]);
+die();
+}
+if (strlen($commonname) < 1) {
+$_SESSION["err"] = 5;
+header("Location: ".$_SERVER["PHP_SELF"]);
+die();
+}
+$conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
 if (!$conn) {
 die("An error occurred.");
 }
 $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
 $result = mysqli_query($conn, $sql);
 if (mysqli_num_rows($result) > 0) {
-header("Location: ".$_SERVER["PHP_SELF"]."?err=1");
+$_SESSION["err"] = 1;
+header("Location: ".$_SERVER["PHP_SELF"]);
 die();
 }
 mysqli_close($conn);
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
 if (!$conn) {
 die("An error occurred.");
 }
@@ -52,18 +65,17 @@ $sql = "INSERT INTO config (cn, status)
 VALUES ('$commonname', 'active')";
 if (mysqli_query($conn, $sql)) {
 } else {
-die("Error occured....");
+die("Error occured.");
 }
-
-shell_exec("sudo sshpass -p '".$vpnserverpw."' ssh ".$vpnserveruser."@".$vpnserver." 'sh /var/create.sh $commonname' 2>&1");
-shell_exec("sudo wget http://".$vpnserver."/".$commonname.".ovpn -O ".$_SERVER["DOCUMENT_ROOT"]."/".$commonname.".ovpn");
-shell_exec("sudo sshpass -p '".$vpnserverpw."' ssh ".$vpnserveruser."@".$vpnserver." 'rm /var/www/html/$commonname.ovpn' 2>&1");
+$ssh = new Net_SSH2($vpnserver);
+if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
+    exit('Error occured..');
+}
+$ssh->exec('/var/openvpn_scripts/create.sh '.$commonname);
 header('Content-Description: File Transfer');
 header('Content-Type: application/octet-stream');
 header("Content-disposition: attachment; filename=\"".$commonname.".ovpn\"");
-readfile($commonname.".ovpn");
-unlink($commonname.".ovpn");
-header("Location: ".$_SERVER["PHP_SELF"]);
+echo $ssh->exec('cat /var/openvpn_clients/'.$commonname.'.ovpn');
 die();
 }
 
@@ -72,20 +84,24 @@ die();
 
 if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
 $commonname = $_GET["delconfig"];
-$conn = mysqli_connect($servername, $username, $password, $dbname);
+$conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
 if (!$conn) {
 die("An error occurred.");
 }
 $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
 $result = mysqli_query($conn, $sql);
 if (mysqli_num_rows($result) < 1) {
-header("Location: ".$_SERVER["PHP_SELF"]."?err=2");
+$_SESSION["err"] = 2;
+header("Location: ".$_SERVER["PHP_SELF"]);
 die();
 }
 mysqli_close($conn);
-
-shell_exec("sudo sshpass -p '".$vpnserverpw."' ssh ".$vpnserveruser."@".$vpnserver." 'sh /var/revoke.sh $commonname' 2>&1");
-$conn = new mysqli($servername, $username, $password, $dbname);
+$ssh = new Net_SSH2($vpnserver);
+if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
+    exit('Error occured.');
+}
+$ssh->exec('/var/openvpn_scripts/revoke.sh '.$commonname);
+$conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
@@ -96,7 +112,8 @@ if ($conn->query($sql) === TRUE) {
 header("Location: ".$_SERVER["PHP_SELF"]);
 die();
 } else {
-header("Location: ".$_SERVER["PHP_SELF"]."?err=3");
+$_SESSION["err"] = 3;
+header("Location: ".$_SERVER["PHP_SELF"]);
 die();
 }
 }
@@ -145,15 +162,28 @@ EOF;
 <?php
 if ($_SESSION["auth"] == "1") {
 $key = $_SESSION["key"];
-if ($_GET["err"] == "1") {
+if ($_SESSION["err"] == 1) {
 echo '<p class="lead text-danger">Common Name is taken</p>';
+$_SESSION["err"] = 0;
 }
-if ($_GET["err"] == "2") {
+if ($_SESSION["err"] == 2) {
 echo '<p class="lead text-danger">Unable to delete configuration: Common name not found in database</p>';
+$_SESSION["err"] = 0;
 }
-if ($_GET["err"] == "2") {
+if ($_SESSION["err"] == 3) {
 echo '<p class="lead text-danger">Unable to delete from database. Client may be revoked.</p>';
+$_SESSION["err"] = 0;
 }
+if ($_SESSION["err"] == 4) {
+echo '<p class="lead text-danger">Common name must be alphanumeric and less than 32 characters long.</p>';
+$_SESSION["err"] = 0;
+}
+if ($_SESSION["err"] == 5) {
+echo '<p class="lead text-danger">Common name can not be empty.</p>';
+$_SESSION["err"] = 0;
+}
+
+
 echo <<<EOL
 <form method="post">
   <div class="form-group">
@@ -173,7 +203,7 @@ echo <<<EOL
   </thead>
   <tbody>
 EOL;
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
 if (!$conn) {
   die("Error occured...");
 }
@@ -190,9 +220,18 @@ if ($result->num_rows > 0) {
 $conn->close();
 
 echo <<<EOF
-
   </tbody>
 </table>
+EOF;
+
+$ssh = new Net_SSH2($vpnserver);
+if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
+    exit('Error occured.');
+}
+$ssh->exec('vnstati -vs -o /var/vnstat.png');
+echo '<img class="img-fluid" src="data:image/png;base64,'.$ssh->exec('base64 -w 0 /var/vnstat.png').'" alt="Network stats">';
+
+echo <<<EOF
 </div>
 </main>
 </body>
@@ -208,6 +247,7 @@ die();
   </div><br>
   <input class="btn btn-primary w-100" type="submit" value="Login">
 </form>
+
 </div>
 </main>
 </body>
