@@ -1,9 +1,9 @@
 <?php
-$servername = ""; // MySQL servername
-$username = ""; // MySQL username
-$password = ""; // MySQL password
-$dbname = ""; // MySQL database containing the 'config' table 
-$pw = ''; // Password to access the WebAdmin
+$dbservername = "localhost"; // MySQL servername
+$dbusername = ""; // MySQL username
+$dbpassword = ""; // MySQL password
+$dbname = ""; // MySQL database containing the 'config' table
+$adminpw = ''; // Password to access the WebAdmin
 $vpnserver = ""; // IP address of the OpenVPN server
 $vpnserveruser = ""; // SSH username of the OpenVPN server
 $vpnserverpw = ''; // SSH password of the OpenVPN server
