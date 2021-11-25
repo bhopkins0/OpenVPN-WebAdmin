@@ -35,13 +35,18 @@ if ($_POST["pw"] && !isset($_SESSION["auth"])) {
 ?>
 <?php
 
+// Authenticated user wants to create a new client
 if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == $_SESSION["key"]) {
     $commonname = $_POST["commonname"];
+    
+    // CN is not alphanumeric and is greater than 32
     if (strlen($commonname) > 32 || !preg_match("/^[A-Za-z0-9]*$/", $commonname)) {
         $_SESSION["err"] = 4;
         header("Location: ".$_SERVER["PHP_SELF"]);
         die();
     }
+    
+    // CN is blank
     if (strlen($commonname) < 1) {
         $_SESSION["err"] = 5;
         header("Location: ".$_SERVER["PHP_SELF"]);
@@ -54,6 +59,7 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
     $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
     $result = mysqli_query($conn, $sql);
     if (mysqli_num_rows($result) > 0) {
+        // The CN is already in use
         $_SESSION["err"] = 1;
         header("Location: ".$_SERVER["PHP_SELF"]);
         die();
@@ -62,18 +68,22 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
 
     $conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
     if (!$conn) {
-        die("An error occurred.");
+        die("Error");
     }
     $sql = "INSERT INTO config (cn, status)
     VALUES ('$commonname', 'active')";
     if (mysqli_query($conn, $sql)) {
+        // Successfully added the CN into the database
     } else {
-        die("Error occured.");
+        die("Error");
     }
+    
     $ssh = new Net_SSH2($vpnserver);
     if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
-        exit('Error occured..');
+        exit('Error');
     }
+    
+    // Run the create.sh script on the server and download the new .ovpn file
     $ssh->exec('/var/openvpn_scripts/create.sh '.$commonname);
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
@@ -85,6 +95,7 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
 ?>
 <?php
 
+// User wants to revoke a client
 if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
     $commonname = $_GET["delconfig"];
     $conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
@@ -214,6 +225,7 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
   $incvar=1;
   while($row = $result->fetch_assoc()) {
+    // Might add a column with a download button for the .ovpn files
     $key = $_SESSION["key"];
     echo '<tr><th scope="row">'.$incvar.'</th><td>'. $row["cn"] .'</td><td><a href="index.php?delconfig='.$row["cn"].'&key='.$key.'" class="btn btn-danger">Delete</a></td></tr>';
     $incvar=$incvar+1;
