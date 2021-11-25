@@ -1,4 +1,4 @@
-# OpenVPN-WebAdmin Version 0.1 -- Work in Progress
+# OpenVPN-WebAdmin Version 0.2 -- Work in Progress
 Manage OpenVPN configurations in a web browser
 
 Only tested on Ubuntu Server 20.04 w/ LEMP stack.
