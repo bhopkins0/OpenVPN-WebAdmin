@@ -8,6 +8,20 @@ This is functional code serving as a rough draft for the project.
 It is barebones and does not incorporate adequate security features for production use. 
 
 ![Picture of Webadmin](vpnadmin.png)
+
+# Installation
+
+1. Create this MySQL table
+```
+CREATE TABLE config (
+	cn VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_general_ci,
+	status VARCHAR(64) CHARACTER SET utf8 COLLATE utf8_general_ci
+);
+```
+2. Fill out the blank information in the `config.php`
+3. Install OpenVPN on a separate server using the [OpenVPN Installer for Webadmin](https://github.com/bhopkins0/OpenVPN-Installer-For-Webadmin). **This is required to ensure compatibility.**
+
+
 # Todo: 
 * Display status.log
 * Create installation file for MySQL table creation and webadmin password
