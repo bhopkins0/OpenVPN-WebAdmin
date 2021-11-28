@@ -12,8 +12,7 @@ if ($restrict2vpn == "1") {
         die();
     }
 }
-?>
-<?php
+
 
 // Login attempt
 if ($_POST["pw"] && !isset($_SESSION["auth"])) {
@@ -26,26 +25,25 @@ if ($_POST["pw"] && !isset($_SESSION["auth"])) {
     // Success
     if ($_POST["pw"] == $adminpw) {
         $_SESSION["auth"] = "1";
-        $_SESSION["key"] = random_int(1,9999999999);
+        $_SESSION["key"] = random_int(1,9999999999); // Idea here is to prevent potential CSRF attack
         header("Refresh:0");
     die();
 }
 
 }
-?>
-<?php
+
 
 // Authenticated user wants to create a new client
 if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == $_SESSION["key"]) {
     $commonname = $_POST["commonname"];
-    
+
     // CN is not alphanumeric and is greater than 32
     if (strlen($commonname) > 32 || !preg_match("/^[A-Za-z0-9]*$/", $commonname)) {
         $_SESSION["err"] = 4;
         header("Location: ".$_SERVER["PHP_SELF"]);
         die();
     }
-    
+
     // CN is blank
     if (strlen($commonname) < 1) {
         $_SESSION["err"] = 5;
@@ -77,12 +75,12 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
     } else {
         die("Error");
     }
-    
+
     $ssh = new Net_SSH2($vpnserver);
     if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
         exit('Error');
     }
-    
+
     // Run the create.sh script on the server and download the new .ovpn file
     $ssh->exec('/var/openvpn_scripts/create.sh '.$commonname);
     header('Content-Description: File Transfer');
@@ -91,9 +89,6 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
     echo $ssh->exec('cat /var/openvpn_clients/'.$commonname.'.ovpn');
     die();
 }
-
-?>
-<?php
 
 // User wants to revoke a client
 if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
@@ -129,6 +124,34 @@ if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_S
         header("Location: ".$_SERVER["PHP_SELF"]);
         die();
     }
+}
+
+// User downloads configuration
+if (isset($_GET["dl"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
+    $commonname = $_GET["dl"];
+    $conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
+    if (!$conn) {
+        die("An error occurred.");
+    }
+    $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
+    $result = mysqli_query($conn, $sql);
+    if (mysqli_num_rows($result) < 1) {
+        $_SESSION["err"] = 6;
+        header("Location: ".$_SERVER["PHP_SELF"]);
+        die();
+    }
+    mysqli_close($conn);
+    $ssh = new Net_SSH2($vpnserver);
+    if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
+        exit('Error occured.');
+    }
+
+    // Download .ovpn file if it exists
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/octet-stream');
+    header("Content-disposition: attachment; filename=\"".$commonname.".ovpn\"");
+    echo $ssh->exec('cat /var/openvpn_clients/'.$commonname.'.ovpn');
+    die();
 }
 ?>
 
@@ -195,7 +218,10 @@ if ($_SESSION["auth"] == "1") {
         echo '<p class="lead text-danger">Common name can not be empty.</p>';
         $_SESSION["err"] = 0;
     }
-
+    if ($_SESSION["err"] == 6) {
+        echo '<p class="lead text-danger">Error downloading the OpenVPN configuration..</p>';
+        $_SESSION["err"] = 0;
+    }
 
 echo <<<EOL
 <form method="post">
@@ -203,7 +229,7 @@ echo <<<EOL
     <input type="text" class="form-control" name="commonname" placeholder="CN (Common Name)">
     <input type="hidden" id="key" name="key" value="$key">
   </div><br>
-  <input class="btn btn-primary w-100" type="submit" value="Generate Configuration">
+  <input class="btn btn-outline-primary w-100" type="submit" value="Generate Configuration">
 </form>
 
 <table class="table">
@@ -211,6 +237,7 @@ echo <<<EOL
     <tr>
       <th scope="col">#</th>
       <th scope="col">Common Name</th>
+      <th scope="col"></th>
       <th scope="col"></th>
     </tr>
   </thead>
@@ -227,7 +254,7 @@ if ($result->num_rows > 0) {
   while($row = $result->fetch_assoc()) {
     // Might add a column with a download button for the .ovpn files
     $key = $_SESSION["key"];
-    echo '<tr><th scope="row">'.$incvar.'</th><td>'. $row["cn"] .'</td><td><a href="index.php?delconfig='.$row["cn"].'&key='.$key.'" class="btn btn-danger">Delete</a></td></tr>';
+    echo '<tr><th scope="row">'.$incvar.'</th><td>'. $row["cn"] .'</td><td><a href="index.php?dl='.$row["cn"].'&key='.$key.'" class="btn btn-primary">Download</a></td><td><a href="index.php?delconfig='.$row["cn"].'&key='.$key.'" class="btn btn-danger">Delete</a></td></tr>';
     $incvar=$incvar+1;
   }
 }
