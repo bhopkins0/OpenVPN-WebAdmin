@@ -11,14 +11,8 @@ It is barebones and does not incorporate adequate security features for producti
 
 # Installation
 
-1. Create this MySQL table
-```
-CREATE TABLE config (
-	cn VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_general_ci,
-	status VARCHAR(64) CHARACTER SET utf8 COLLATE utf8_general_ci
-);
-```
-2. Fill out the blank information in the `config.php`
+1. Fill out the blank information in the `config.php`
+2. Run `php installation.php` 
 3. Install OpenVPN on a separate server using the [OpenVPN Installer for Webadmin](https://github.com/bhopkins0/OpenVPN-Installer-For-Webadmin). **This is required to ensure compatibility.**
 
 
