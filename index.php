@@ -252,7 +252,6 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
   $incvar=1;
   while($row = $result->fetch_assoc()) {
-    // Might add a column with a download button for the .ovpn files
     $key = $_SESSION["key"];
     echo '<tr><th scope="row">'.$incvar.'</th><td>'. $row["cn"] .'</td><td><a href="index.php?dl='.$row["cn"].'&key='.$key.'" class="btn btn-primary">Download</a></td><td><a href="index.php?delconfig='.$row["cn"].'&key='.$key.'" class="btn btn-danger">Delete</a></td></tr>';
     $incvar=$incvar+1;
