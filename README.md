@@ -17,7 +17,10 @@ It is barebones and does not incorporate adequate security features for producti
 
 
 # Todo: 
-* Display status.log
+* Retrieve `status.log` and create a two-dimensional array to output statistics about clients currently connected to the VPN
+* Add a navbar to allow for multiple pages 
+* Maybe store login attempts in a database?
+* Release a custom nginx conf file to mitigate potential attacks (ex: PHP crashes and config.php gets exposed)
 * Support multiple accounts
 * Clean up code: indent, make comments, tidy up if statements, etc
 * Make page refresh after adding client
