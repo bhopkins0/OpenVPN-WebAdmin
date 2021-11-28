@@ -18,7 +18,6 @@ It is barebones and does not incorporate adequate security features for producti
 
 # Todo: 
 * Display status.log
-* Create installation file for MySQL table creation and webadmin password
 * Support multiple accounts
 * Clean up code: indent, make comments, tidy up if statements, etc
 * Make page refresh after adding client
