@@ -1,4 +1,4 @@
-# OpenVPN-WebAdmin Version 0.2 -- Work in Progress
+# OpenVPN-WebAdmin Version 0.3 -- Work in Progress
 Manage OpenVPN configurations in a web browser
 
 Only tested on Ubuntu Server 20.04 w/ LEMP stack.
@@ -7,7 +7,6 @@ This is functional code serving as a rough draft for the project.
 
 It is barebones and does not incorporate adequate security features for production use. 
 
-![Picture of Webadmin](vpnadmin.png)
 
 # Installation
 
@@ -17,7 +16,6 @@ It is barebones and does not incorporate adequate security features for producti
 
 
 # Todo: 
-* Retrieve `status.log` and create a two-dimensional array to output statistics about clients currently connected to the VPN
 * Add a navbar to allow for multiple pages 
 * Maybe store login attempts in a database?
 * Release a custom nginx conf file to mitigate potential attacks (ex: PHP crashes and config.php gets exposed)
