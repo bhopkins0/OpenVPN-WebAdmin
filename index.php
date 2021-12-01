@@ -3,7 +3,6 @@ session_start();
 include 'config.php';
 include 'Net/SSH2.php';
 
-
 if ($restrict2vpn == "1") {
     if ($_SERVER["REMOTE_ADDR"] !== $vpnserver) {
         echo <<<EOF
@@ -15,7 +14,7 @@ if ($restrict2vpn == "1") {
 
 
 // Login attempt
-if ($_POST["pw"] && !isset($_SESSION["auth"])) {
+if ($_POST["pw"] && isset($_SESSION["auth"])) {
 
     // Fail
     if ($_POST["pw"] !== $adminpw) {
@@ -26,28 +25,33 @@ if ($_POST["pw"] && !isset($_SESSION["auth"])) {
     if ($_POST["pw"] == $adminpw) {
         $_SESSION["auth"] = "1";
         $_SESSION["key"] = random_int(1,9999999999); // Idea here is to prevent potential CSRF attack
-        header("Refresh:0");
+        header("Location: /");
     die();
 }
 
 }
 
+// Authenticated user wants to log out
+if ($_POST["lo"] == $_SESSION["key"]) {
+        $_SESSION["auth"] = "";
+        $_SESSION["key"] = "";
+}
 
 // Authenticated user wants to create a new client
 if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == $_SESSION["key"]) {
-    $commonname = $_POST["commonname"];
+    $commonname = strtolower($_POST["commonname"]);
 
     // CN is not alphanumeric and is greater than 32
     if (strlen($commonname) > 32 || !preg_match("/^[A-Za-z0-9]*$/", $commonname)) {
-        $_SESSION["err"] = 4;
-        header("Location: ".$_SERVER["PHP_SELF"]);
+        $_SESSION["err"] = 2;
+        header("Location: /");
         die();
     }
 
     // CN is blank
     if (strlen($commonname) < 1) {
-        $_SESSION["err"] = 5;
-        header("Location: ".$_SERVER["PHP_SELF"]);
+        $_SESSION["err"] = 3;
+        header("Location: /");
         die();
     }
     $conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
@@ -59,7 +63,7 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
     if (mysqli_num_rows($result) > 0) {
         // The CN is already in use
         $_SESSION["err"] = 1;
-        header("Location: ".$_SERVER["PHP_SELF"]);
+        header("Location: /");
         die();
     }
     mysqli_close($conn);
@@ -71,7 +75,7 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
     $sql = "INSERT INTO config (cn, status)
     VALUES ('$commonname', 'active')";
     if (mysqli_query($conn, $sql)) {
-        // Successfully added the CN into the database
+
     } else {
         die("Error");
     }
@@ -83,76 +87,11 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
 
     // Run the create.sh script on the server and download the new .ovpn file
     $ssh->exec('/var/openvpn_scripts/create.sh '.$commonname);
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-    header("Content-disposition: attachment; filename=\"".$commonname.".ovpn\"");
-    echo $ssh->exec('cat /var/openvpn_clients/'.$commonname.'.ovpn');
+    $_SESSION["success"] = 1;
+    header("Location: /");
     die();
 }
 
-// User wants to revoke a client
-if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
-    $commonname = $_GET["delconfig"];
-    $conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
-    if (!$conn) {
-        die("An error occurred.");
-    }
-    $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
-    $result = mysqli_query($conn, $sql);
-    if (mysqli_num_rows($result) < 1) {
-        $_SESSION["err"] = 2;
-        header("Location: ".$_SERVER["PHP_SELF"]);
-        die();
-    }
-    mysqli_close($conn);
-    $ssh = new Net_SSH2($vpnserver);
-    if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
-        exit('Error occured.');
-    }
-    $ssh->exec('/var/openvpn_scripts/revoke.sh '.$commonname);
-    $conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-    $sql = "UPDATE config SET status='inactive' WHERE cn='$commonname'";
-
-    if ($conn->query($sql) === TRUE) {
-        header("Location: ".$_SERVER["PHP_SELF"]);
-        die();
-    } else {
-        $_SESSION["err"] = 3;
-        header("Location: ".$_SERVER["PHP_SELF"]);
-        die();
-    }
-}
-
-// User downloads configuration
-if (isset($_GET["dl"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
-    $commonname = $_GET["dl"];
-    $conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
-    if (!$conn) {
-        die("An error occurred.");
-    }
-    $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
-    $result = mysqli_query($conn, $sql);
-    if (mysqli_num_rows($result) < 1) {
-        $_SESSION["err"] = 6;
-        header("Location: ".$_SERVER["PHP_SELF"]);
-        die();
-    }
-    mysqli_close($conn);
-    $ssh = new Net_SSH2($vpnserver);
-    if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
-        exit('Error occured.');
-    }
-
-    // Download .ovpn file if it exists
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-    header("Content-disposition: attachment; filename=\"".$commonname.".ovpn\"");
-    echo $ssh->exec('cat /var/openvpn_clients/'.$commonname.'.ovpn');
-    die();
-}
 ?>
 
 <html>
@@ -203,26 +142,17 @@ if ($_SESSION["auth"] == "1") {
         $_SESSION["err"] = 0;
     }
     if ($_SESSION["err"] == 2) {
-        echo '<p class="lead text-danger">Unable to delete configuration: Common name not found in database</p>';
-        $_SESSION["err"] = 0;
-    }
-    if ($_SESSION["err"] == 3) {
-        echo '<p class="lead text-danger">Unable to delete from database. Client may be revoked.</p>';
-        $_SESSION["err"] = 0;
-    }
-    if ($_SESSION["err"] == 4) {
         echo '<p class="lead text-danger">Common name must be alphanumeric and less than 32 characters long.</p>';
         $_SESSION["err"] = 0;
     }
-    if ($_SESSION["err"] == 5) {
+    if ($_SESSION["err"] == 3) {
         echo '<p class="lead text-danger">Common name can not be empty.</p>';
         $_SESSION["err"] = 0;
     }
-    if ($_SESSION["err"] == 6) {
-        echo '<p class="lead text-danger">Error downloading the OpenVPN configuration..</p>';
-        $_SESSION["err"] = 0;
+    if ($_SESSION["success"] == 1) {
+        echo '<p class="lead text-success">Client configuration generated successfully. You can download it in the Client Manager.</p>';
+        $_SESSION["success"] = 0;
     }
-
 echo <<<EOL
 <form method="post">
   <div class="form-group">
@@ -231,109 +161,44 @@ echo <<<EOL
   </div><br>
   <input class="btn btn-outline-primary w-100" type="submit" value="Generate Configuration">
 </form>
-
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Common Name</th>
-      <th scope="col"></th>
-      <th scope="col"></th>
-    </tr>
-  </thead>
-  <tbody>
-EOL;
-$conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
-if (!$conn) {
-  die("Error occured...");
-}
-$sql = "SELECT cn FROM config WHERE status='active'";
-$result = $conn->query($sql);
-if ($result->num_rows > 0) {
-  $incvar=1;
-  while($row = $result->fetch_assoc()) {
-    $key = $_SESSION["key"];
-    echo '<tr><th scope="row">'.$incvar.'</th><td>'. $row["cn"] .'</td><td><a href="index.php?dl='.$row["cn"].'&key='.$key.'" class="btn btn-primary">Download</a></td><td><a href="index.php?delconfig='.$row["cn"].'&key='.$key.'" class="btn btn-danger">Delete</a></td></tr>';
-    $incvar=$incvar+1;
-  }
-}
-$conn->close();
-
-echo <<<EOF
-  </tbody>
-</table>
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Common Name</th>
-      <th scope="col">IP:PORT</th>
-      <th scope="col">Data Recieved</th>
-      <th scope="col">Data Sent</th>
-      <th scope="col">Connected Since</th>
-    </tr>
-  </thead>
-  <tbody>
-EOF;
-
-$ssh = new Net_SSH2($vpnserver);
-if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
-    exit('Error occured.');
-}
-$ssh->exec('vnstati -vs -o /var/vnstat.png');
-$connected_clients = array_filter(explode("\n", $ssh->exec("sed -n '/Connected Since/,/ROUTING TABLE/{/Connected Since/b;/ROUTING TABLE/b;p}' /var/log/openvpn/status.log")));
-$incvar = 1;
-foreach ($connected_clients as $nclient) {
-        $nclient = explode(",", $nclient);
-        $bytesrec = (int)$nclient[2] . ' Bytes';
-        $bytessent = (int)$nclient[3] . ' Bytes';
-        if ((int)$nclient[2] > 1000 && (int)$nclient[2] < 1000000) {
-                $bytesrec = ((int)$nclient[2] / 1000) . ' KB';
-        }
-        if ((int)$nclient[2] > 1000000 && (int)$nclient[2] < 1000000000) {
-                $bytesrec = ((int)$nclient[2] / 1000000) . ' MB';
-        }
-        if ((int)$nclient[2] > 1000000000 && (int)$nclient[2] < 1000000000000) {
-                $bytesrec = ((int)$nclient[2] / 1000000000) . ' GB';
-        }
-        if ((int)$nclient[2] > 1000000000000 && (int)$nclient[2] < 1000000000000000) {
-                $bytesrec = ((int)$nclient[2] / 1000000000000) . ' TB';
-        }
-        if ((int)$nclient[3] > 1000 && (int)$nclient[3] < 1000000) {
-                $bytessent = ((int)$nclient[3] / 1000) . ' KB';
-        }
-        if ((int)$nclient[3] > 1000000 && (int)$nclient[3] < 1000000000) {
-                $bytessent = ((int)$nclient[3] / 1000000) . ' MB';
-        }
-        if ((int)$nclient[3] > 1000000000 && (int)$nclient[3] < 1000000000000) {
-                $bytessent = ((int)$nclient[3] / 1000000000) . ' GB';
-        }
-        if ((int)$nclient[3] > 1000000000000 && (int)$nclient[3] < 1000000000000000) {
-                $bytessent = ((int)$nclient[3] / 1000000000000) . ' TB';
-        }
-
-        echo '<tr><th scope="row">'.$incvar.'</th>';
-        echo '<td>'.$nclient[0].'</td>';
-        echo '<td>'.$nclient[1].'</td>';
-        echo '<td>'.$bytessent.'</td>';
-        echo '<td>'.$bytesrec.'</td>';
-        echo '<td>'.$nclient[4].'</td>';
-        $incvar=$incvar+1;
-}
-//echo '<pre class="pre-scrollable"><code>'.print_r($connected_clients).'</code></pre>';
-echo <<<EOF
-  </tbody>
-</table>
-EOF;
-echo '<img class="img-fluid" src="data:image/png;base64,'.$ssh->exec('base64 -w 0 /var/vnstat.png').'" alt="Network stats"><br>';
-echo <<<EOF
-
+<div class="card-deck mb-3 text-center">
+<div class="card mb-4 box-shadow">
+<div class="card-header">
+<h4 class="my-0 font-weight-normal">Manage Clients</h4>
+</div>
+<div class="card-body">
+<p class="lead">Delete clients & download client .ovpn files</p>
+<a class="btn btn-primary btn-block" href="manageclients.php">Go to client manager</a>
+</div>
+</div>
+<div class="card mb-4 box-shadow">
+<div class="card-header">
+<h4 class="my-0 font-weight-normal">Connected Clients</h4>
+</div>
+<div class="card-body">
+<p class="lead">List of connected clients and information about them</p>
+<a class="btn btn-primary btn-block" href="clients.php">Go to connected clients</a>
+</div>
+</div>
+<div class="card mb-4 box-shadow">
+<div class="card-header">
+<h4 class="my-0 font-weight-normal">Network Graph</h4>
+</div>
+<div class="card-body">
+<p class="lead">Bandwidth statistics of the VPN server</p>
+<a class="btn btn-primary btn-block" href="netstats.php">Go to network graph</a>
+</div>
+</div>
+<form method="post">
+<input type="hidden" id="lo" name="lo" value="$key">
+<input class="btn btn-danger w-100" type="submit" value="Logout">
+</form>
             </div>
         </main>
     </body>
 </html>
 
-EOF;
+EOL;
 die();
 }
 ?>
