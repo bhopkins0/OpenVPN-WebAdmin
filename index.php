@@ -14,7 +14,7 @@ if ($restrict2vpn == "1") {
 
 
 // Login attempt
-if ($_POST["pw"] && isset($_SESSION["auth"])) {
+if ($_POST["pw"] && $_SESSION["auth"] !== "1") {
 
     // Fail
     if ($_POST["pw"] !== $adminpw) {
