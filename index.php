@@ -262,6 +262,18 @@ $conn->close();
 echo <<<EOF
   </tbody>
 </table>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Common Name</th>
+      <th scope="col">IP:PORT</th>
+      <th scope="col">Data Recieved</th>
+      <th scope="col">Data Sent</th>
+      <th scope="col">Connected Since</th>
+    </tr>
+  </thead>
+  <tbody>
 EOF;
 
 $ssh = new Net_SSH2($vpnserver);
@@ -269,9 +281,53 @@ if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
     exit('Error occured.');
 }
 $ssh->exec('vnstati -vs -o /var/vnstat.png');
-echo '<img class="img-fluid" src="data:image/png;base64,'.$ssh->exec('base64 -w 0 /var/vnstat.png').'" alt="Network stats">';
+$connected_clients = array_filter(explode("\n", $ssh->exec("sed -n '/Connected Since/,/ROUTING TABLE/{/Connected Since/b;/ROUTING TABLE/b;p}' /var/log/openvpn/status.log")));
+$incvar = 1;
+foreach ($connected_clients as $nclient) {
+        $nclient = explode(",", $nclient);
+        $bytesrec = (int)$nclient[2] . ' Bytes';
+        $bytessent = (int)$nclient[3] . ' Bytes';
+        if ((int)$nclient[2] > 1000 && (int)$nclient[2] < 1000000) {
+                $bytesrec = ((int)$nclient[2] / 1000) . ' KB';
+        }
+        if ((int)$nclient[2] > 1000000 && (int)$nclient[2] < 1000000000) {
+                $bytesrec = ((int)$nclient[2] / 1000000) . ' MB';
+        }
+        if ((int)$nclient[2] > 1000000000 && (int)$nclient[2] < 1000000000000) {
+                $bytesrec = ((int)$nclient[2] / 1000000000) . ' GB';
+        }
+        if ((int)$nclient[2] > 1000000000000 && (int)$nclient[2] < 1000000000000000) {
+                $bytesrec = ((int)$nclient[2] / 1000000000000) . ' TB';
+        }
+        if ((int)$nclient[3] > 1000 && (int)$nclient[3] < 1000000) {
+                $bytessent = ((int)$nclient[3] / 1000) . ' KB';
+        }
+        if ((int)$nclient[3] > 1000000 && (int)$nclient[3] < 1000000000) {
+                $bytessent = ((int)$nclient[3] / 1000000) . ' MB';
+        }
+        if ((int)$nclient[3] > 1000000000 && (int)$nclient[3] < 1000000000000) {
+                $bytessent = ((int)$nclient[3] / 1000000000) . ' GB';
+        }
+        if ((int)$nclient[3] > 1000000000000 && (int)$nclient[3] < 1000000000000000) {
+                $bytessent = ((int)$nclient[3] / 1000000000000) . ' TB';
+        }
 
+        echo '<tr><th scope="row">'.$incvar.'</th>';
+        echo '<td>'.$nclient[0].'</td>';
+        echo '<td>'.$nclient[1].'</td>';
+        echo '<td>'.$bytessent.'</td>';
+        echo '<td>'.$bytesrec.'</td>';
+        echo '<td>'.$nclient[4].'</td>';
+        $incvar=$incvar+1;
+}
+//echo '<pre class="pre-scrollable"><code>'.print_r($connected_clients).'</code></pre>';
 echo <<<EOF
+  </tbody>
+</table>
+EOF;
+echo '<img class="img-fluid" src="data:image/png;base64,'.$ssh->exec('base64 -w 0 /var/vnstat.png').'" alt="Network stats"><br>';
+echo <<<EOF
+
             </div>
         </main>
     </body>
