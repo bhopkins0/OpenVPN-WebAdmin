@@ -1,14 +1,12 @@
 # OpenVPN-WebAdmin Version 0.3 -- Work in Progress
 Manage OpenVPN configurations in a web browser
 
-Only tested on Ubuntu Server 20.04 w/ LEMP stack.
-
-This is functional code serving as a rough draft for the project. 
-
-It is barebones and does not incorporate adequate security features for production use. 
+This is functional code for a personal project. It has not been vetted for security vulnerabilities.
 
 
 # Installation
+
+I have only tested this on LEMP stacks (PHP 7.4) running Ubuntu >= 20.04.
 
 1. Fill out the blank information in the `config.php`
 2. Run `php installation.php` 
