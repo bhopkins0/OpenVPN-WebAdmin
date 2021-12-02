@@ -16,6 +16,7 @@ It is barebones and does not incorporate adequate security features for producti
 
 
 # Todo: 
+* Instead of using <p></p> for errors, use bootstrap alerts
 * Add a navbar instead of using cards
 * Add page to display login attempts
 * Maybe do something with DNS logs?
