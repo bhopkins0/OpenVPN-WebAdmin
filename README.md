@@ -8,6 +8,7 @@ This is functional code for a personal project. It has not been vetted for secur
 
 I have only tested this on LEMP stacks (PHP 7.4) running Ubuntu >= 20.04.
 
+0. Install LEMP stack  and set up MySQL (create database and user for the webadmin)
 1. Fill out the blank information in the `config.php`
 2. Run `php installation.php` 
 3. Install OpenVPN on a separate server using the [OpenVPN Installer for Webadmin](https://github.com/bhopkins0/OpenVPN-Installer-For-Webadmin). **This is required to ensure compatibility.**
