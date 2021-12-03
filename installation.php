@@ -79,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $sql_pass = addslashes($_POST["sql_pass"]);
         $admin_user = strtolower($_POST["admin_user"]);
         $admin_pass = password_hash($_POST["admin_pass"], PASSWORD_BCRYPT);
-        $vpn_server = ip2long($_POST["vpn_server"]);
+        $vpn_server = $_POST["vpn_server"];
         $vpn_user = $_POST["vpn_user"];
         $vpn_pass = addslashes($_POST["vpn_pass"]);
         $time = time();
@@ -196,6 +196,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $fp = fopen('config.php', 'w');
         fwrite($fp, $config);
         fclose($fp);
+        unlink("installation.php");
 }
 
 ?>
