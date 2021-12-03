@@ -35,8 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION["auth"] !== "1") {
   $sql = "SELECT creation_time FROM accounts WHERE username='$user'";
   $result = mysqli_query($conn, $sql);
   if (mysqli_num_rows($result) < 1) {
-  $_SESSION["err"] = 1;
-  header("Location: https://account.brenthopkins.me/");
+  $_SESSION["loginerr"] = 1;
+  header("Location: /");
   die();
   }
   mysqli_close($conn);
