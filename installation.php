@@ -173,15 +173,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         $conn->close();
-
+        
         $config = '<?php' . PHP_EOL;
         $config .= '$dbservername = "'.$sql_server.'";' . PHP_EOL;
         $config .= '$dbusername = "'.$sql_user.'";' . PHP_EOL;
-        $config .= '$dbpassword = "'.$sql_pass.'";' . PHP_EOL;
+        $config .= '$dbpassword = \''.$sql_pass.'\';' . PHP_EOL;
         $config .= '$dbname = "'.$sql_db.'";' . PHP_EOL;
         $config .= '$vpnserver = "'.$vpn_server.'";' . PHP_EOL;
         $config .= '$vpnserveruser = "'.$vpn_user.'";' . PHP_EOL;
-        $config .= '$vpnserverpw = "'.$vpn_pass.'";' . PHP_EOL;
+        $config .= '$vpnserverpw = \''.$vpn_pass.'\';' . PHP_EOL;
         if (isset($_POST["restrict2vpn"])) {
                 $config .= '$restrict2vpn = "1";' . PHP_EOL;
         } else {
@@ -197,6 +197,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         fwrite($fp, $config);
         fclose($fp);
         unlink("installation.php");
+        header("Location: /");
+        die();
 }
 
 ?>
