@@ -14,21 +14,73 @@ if ($restrict2vpn == "1") {
 
 
 // Login attempt
-if ($_POST["pw"] && $_SESSION["auth"] !== "1") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION["auth"] !== "1") {
+  $user         = strtolower($_POST["username"]);
+  $password     = $_POST["password"];
+  $attempt_ip   = ip2long($_SERVER['REMOTE_ADDR']);
+  $attempt_time = time();
 
-    // Fail
-    if ($_POST["pw"] !== $adminpw) {
-        $res = "1";
-    }
+  if (strlen($user) > 32 || strlen($password) > 50 || strlen($password) < 8) {
+  $_SESSION["loginerr"] = 1;
+  header("Location: /");
+  die();
+  }
+  if (!preg_match('/^[A-Za-z0-9]+$/', $user)) {
+  $_SESSION["loginerr"] = 1;
+  header("Location: /");
+  die();
+  }
 
-    // Success
-    if ($_POST["pw"] == $adminpw) {
-        $_SESSION["auth"] = "1";
+  $conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
+  $sql = "SELECT creation_time FROM accounts WHERE username='$user'";
+  $result = mysqli_query($conn, $sql);
+  if (mysqli_num_rows($result) < 1) {
+  $_SESSION["err"] = 1;
+  header("Location: https://account.brenthopkins.me/");
+  die();
+  }
+  mysqli_close($conn);
+
+  $conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
+  $sql = "SELECT password FROM accounts WHERE username='$user'";
+  $result = mysqli_query($conn, $sql);
+  if (mysqli_num_rows($result) > 0) {
+    while($row = $result->fetch_assoc()) {
+      if (password_verify($password, $row["password"])) {
+        $_SESSION["auth"]  = "1";
+        $success = 1;
+        $_SESSION["user"]  = $user;
         $_SESSION["key"] = random_int(1,9999999999); // Idea here is to prevent potential CSRF attack
-        header("Location: /");
-    die();
-}
+      } else {
+        $_SESSION["loginerr"] = 1;
+        $success = 0;
+      }
+    }
+  }
+  $conn->close();
 
+if ($success == 1) {
+  $conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
+  $sql = "INSERT INTO login_attempts(username, ip, result, login_time)
+  VALUES ('$user', '$attempt_ip', 'success', $attempt_time)";
+
+  if (mysqli_query($conn, $sql)) {
+    header("Location: /");
+  }
+  $conn->close();
+die();
+}
+if ($success == 0) {
+  $conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbname);
+  $sql = "INSERT INTO login_attempts(username, ip, result, login_time)
+  VALUES ('$user', '$attempt_ip', 'fail', $attempt_time)";
+
+  if (mysqli_query($conn, $sql)) {
+    header("Location: /");
+  }
+  $conn->close();
+die();
+}
 }
 
 // Authenticated user wants to log out
@@ -126,13 +178,6 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
     <body>
         <main class="vpn">
         <h1 class="display-4">VPN Admin</h1>
-<?php
-    if ($res == "1") {
-        echo <<<EOF
-        <p class="lead text-danger">Incorrect Password</p>
-        EOF;
-    }
-?>
      <div>
 <?php
 if ($_SESSION["auth"] == "1") {
@@ -203,11 +248,20 @@ die();
 }
 ?>
 <form method="post">
-            <div class="form-group">
-                <input type="password" class="form-control" name="pw" placeholder="Password">
-            </div><br>
-                <input class="btn btn-primary w-100" type="submit" value="Login">
-                </form>
+<?php
+if ($_SESSION["loginerr"] == 1) {
+        echo '<div class="alert alert-danger" role="alert">Invalid username or password</div>';
+        $_SESSION["loginerr"] = 0;
+}
+?>
+<div class="form-group">
+<input type="text" class="form-control" name="username" placeholder="Username">
+</div><br>
+<div class="form-group">
+<input type="password" class="form-control" name="password" placeholder="Password">
+</div><br>
+<input class="btn btn-primary w-100" type="submit" value="Login">
+</form>
             </div>
         </main>
     </body>
