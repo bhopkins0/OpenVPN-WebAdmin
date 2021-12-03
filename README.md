@@ -1,4 +1,4 @@
-# OpenVPN-WebAdmin Version 0.3 -- Work in Progress
+# OpenVPN-WebAdmin Version 0.4
 Manage OpenVPN configurations in a web browser
 
 This is functional code for a personal project. It has not been vetted for security vulnerabilities.
