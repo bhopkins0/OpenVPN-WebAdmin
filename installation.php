@@ -127,6 +127,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         $conn->close();
+        
+        $conn = new mysqli($sql_server, $sql_user, $sql_pass, $sql_db);
+        if ($conn->connect_error) {
+                $_SESSION["err"] = 13;
+                $_SESSION["errmsg"] = $conn->connect_error;
+                header("Location: installation.php");
+                die();
+        }
+        $sql = "CREATE TABLE api (
+	key VARCHAR(64) CHARACTER SET utf8 COLLATE utf8_general_ci,
+	status VARCHAR(16) CHARACTER SET utf8 COLLATE utf8_general_ci
+        )";
+        if ($conn->query($sql) === TRUE) {
+
+        } else {
+                $_SESSION["err"] = 13;
+                $_SESSION["errmsg"] = $conn->error;
+                header("Location: installation.php");
+                die();
+        }
+
+        $conn->close();
 
         $conn = new mysqli($sql_server, $sql_user, $sql_pass, $sql_db);
         if ($conn->connect_error) {
