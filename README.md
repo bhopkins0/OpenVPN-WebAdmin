@@ -13,6 +13,7 @@ I have only tested this on LEMP stacks (PHP 7.4) running Ubuntu >= 20.04.
 1. Install OpenVPN on a separate server using the [OpenVPN Installer for Webadmin](https://github.com/bhopkins0/OpenVPN-Installer-For-Webadmin). **This is required to ensure compatibility.**
 2. Run `chown -R www-data:www-data /var/www/YOUR_WEB_DIR/`
 3. Go to the installation page in a web browser (installation.php)
+4. Update your nginx configuration file with [this](https://github.com/bhopkins0/OpenVPN-WebAdmin/wiki/Example-nginx-configuration-for-OpenVPN-Webadmin).
 
 
 # Todo: 
