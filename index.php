@@ -233,6 +233,10 @@ echo <<<EOL
 <p class="lead">Bandwidth statistics of the VPN server</p>
 <a class="btn btn-primary btn-block" href="netstats.php">Go to network graph</a>
 </div>
+<div class="card-body">
+<p class="lead">Manage API keys and download login attempts</p>
+<a class="btn btn-primary btn-block" href="accmanager.php">Go to account manager</a>
+</div>
 </div>
 <form method="post">
 <input type="hidden" id="lo" name="lo" value="$key">
