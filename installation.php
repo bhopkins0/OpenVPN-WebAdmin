@@ -135,8 +135,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header("Location: installation.php");
                 die();
         }
-        $sql = "CREATE TABLE api (
-	key VARCHAR(64) CHARACTER SET utf8 COLLATE utf8_general_ci,
+        $sql = "CREATE TABLE apikeys (
+	api VARCHAR(64) CHARACTER SET utf8 COLLATE utf8_general_ci,
 	status VARCHAR(16) CHARACTER SET utf8 COLLATE utf8_general_ci
         )";
         if ($conn->query($sql) === TRUE) {
