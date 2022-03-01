@@ -231,7 +231,7 @@ echo <<<EOL
 </div>
 <div class="card-body">
 <p class="lead">Bandwidth statistics of the VPN server</p>
-<a class="btn btn-primary btn-block" href="netstats.php">Go to network graph</a>
+<a class="btn btn-primary btn-block" href="nstats.php">Go to network graph</a>
 </div>
 <div class="card-body">
 <p class="lead">Manage API keys and download login attempts</p>
