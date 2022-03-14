@@ -1,7 +1,16 @@
 # OpenVPN-WebAdmin Version 0.5
 Manage OpenVPN configurations in a web browser
 
-This is functional code for a personal project. It has not been vetted for security vulnerabilities.
+
+![example](https://github.com/bhopkins0/website-uptime-mon/raw/main/example.png)
+
+DISCLAIMER:
+All of the code I publish on Github is either for my own personal use/projects or to help me get better at programming. As of 3/14/2022, this means a few things:
+
+* Don't expect great error reporting.
+* Don't expect the code to be indented. It's my bad habit and my text editor (nano) does not auto-indent.
+* It might not work on your system. This is because I designed it for my specific system and needs.
+* There *could* be security vulnerabilities. It is recommended to select 'Only allow access from VPN IP' during installation.
 
 
 # Installation
