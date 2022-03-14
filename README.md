@@ -6,7 +6,7 @@ This is functional code for a personal project. It has not been vetted for secur
 
 # Installation
 
-I have only tested this on LEMP stacks (PHP 7.4) running Ubuntu >= 20.04. 
+I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 20.04. 
 
 
 0. Install LEMP stack  and set up MySQL (create database and user for the webadmin)
