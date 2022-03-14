@@ -373,7 +373,7 @@ if ($_SESSION["err"] == 15) {
 </div>
 <input class="btn btn-primary w-100" type="submit" value="Install">
 </form>
-<p class="text-muted text-end">Brent's OpenVPN WebAdmin v0.4</p>
+<p class="text-muted text-end">Brent's OpenVPN WebAdmin v0.5</p>
 </div>
 </main>
 </body>
