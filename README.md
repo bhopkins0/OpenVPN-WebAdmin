@@ -26,7 +26,10 @@ I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 2
 
 
 # Todo: 
-* Instead of using `<p></p>` for errors, use bootstrap alerts
+
+* Ability to change DNS servers and port via webadmin
+* Ability to change password
+* API
 * Add a navbar instead of using cards
 * Maybe do something with DNS logs?
 * Support multiple accounts
