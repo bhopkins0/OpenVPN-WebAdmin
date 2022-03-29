@@ -2,7 +2,7 @@
 Manage OpenVPN configurations in a web browser
 
 
-![example](https://github.com/bhopkins0/OpenVPN-WebAdmin/raw/main/vpnadmin.png)
+![example](https://github.com/bhopkins0/OpenVPN-WebAdmin/raw/main/vpnadmin0.7.png)
 
 DISCLAIMER:
 All of the code I publish on Github is either for my own personal use/projects or to help me get better at programming. As of 3/14/2022, this means a few things:
