@@ -1,8 +1,8 @@
-# OpenVPN-WebAdmin Version 0.5
+# OpenVPN-WebAdmin Version 0.7
 Manage OpenVPN configurations in a web browser
 
 
-![example](https://github.com/bhopkins0/OpenVPN-WebAdmin/raw/main/example.png)
+![example](https://github.com/bhopkins0/OpenVPN-WebAdmin/raw/main/vpnadmin.png)
 
 DISCLAIMER:
 All of the code I publish on Github is either for my own personal use/projects or to help me get better at programming. As of 3/14/2022, this means a few things:
@@ -27,10 +27,8 @@ I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 2
 
 # Todo: 
 
-* Ability to change DNS servers and port via webadmin
+* Ability to change DNS servers
 * Ability to change password
-* API
-* Add a navbar instead of using cards
 * Maybe do something with DNS logs?
 * Support multiple accounts
 * Clean up code: indent, make comments, tidy up if statements, etc
