@@ -13,6 +13,22 @@ All of the code I publish on Github is either for my own personal use/projects o
 * There *could* be security vulnerabilities. It is recommended to select 'Only allow access from VPN IP' during installation.
 
 
+# Features
+
+As of version 0.7, the webadmin has the following features:
+
+* Create and revoke OpenVPN client configurations
+* Download OpenVPN client configurations
+* View a list of clients connected to the VPN server
+* Start or stop the OpenVPN daemon
+* Change the port the OpenVPN server listens on
+* View a graph of network statistics
+* Generate and delete API keys
+* Create OpenVPN configurations from an API 
+* Ability to only allow access from the VPN server's IP address
+* View failed/successful login attempts to the webadmin
+
+
 # Installation
 
 I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 20.04. 
