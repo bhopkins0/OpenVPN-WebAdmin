@@ -1,6 +1,8 @@
 <?php
 session_start();
 include 'config.php';
+include 'Net/SSH2.php';
+
 if ($restrict2vpn == "1") {
     if ($_SERVER["REMOTE_ADDR"] !== $vpnserver) {
         echo <<<EOF
@@ -9,12 +11,12 @@ if ($restrict2vpn == "1") {
         die();
     }
 }
-
-if ($_SESSION["auth"] !== "1") {
-        header('Location: /');
-        die();
+if ($_SESSION["auth"] != "1") {
+header("Location: index.php");
+die();
 }
 
+// Delete API key
 
 if (isset($_GET["del"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
     $delapi = $_GET["del"];
@@ -93,74 +95,50 @@ if ($_GET["genapi"] === "1" && $_SESSION["auth"] == "1" && $_GET["key"] == $_SES
     die();
 }
 
-// Change Password
-/*
-
-if ($_SESSION["auth"] == "1" && $_POST["key"] == $_SESSION["key"]) {
-
-// Make sure old password is correct, passwords match, and fit password requirements
-
-
-}
-
-*/
 ?>
+
 <html>
-    <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VPN Admin - Account Manager</title>
-    <link rel="stylesheet" href="bootstrap.min.css">
-    <style>
-    html,
-    body {
-      height: 100%;
-    }
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account Manager</title>
+<link rel="stylesheet" href="bootstrap.min.css">
+</head>
+<body class="bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarToggler">
+      <a class="navbar-brand" href="#">VPN Admin</a>
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" aria-current="page" href="home.php">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="manageclients.php">Client Manager</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="vpnmanager.php">VPN Manager</a>
+        </li>
 
-    body {
-      display: flex;
-      align-items: center;
-      padding-top: 40px;
-      padding-bottom: 40px;
-      background-color: #f5f5f5;
-    }
+      </ul>
+      <ul class="navbar-nav mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" href="accmanager.php">WebAdmin Manager</a>
+        </li>
+      </ul>
 
-    .vpn {
-      width: 100%;
-      max-width: 500px;
-      margin: auto;
-      padding: 15px;
-    }
-
-    </style>
-    </head>
-    <body>
-        <main class="vpn">
-<h1 class="display-4">Account Manager</h1>
-<hr>
-<div>
-<!--<h4>Change Password</h2>
-<form method="post">
-<div class="form-group">
-<input type="password" class="form-control" name="oldpassword" placeholder="Current Password">
-</div><br>
-<div class="form-group">
-<input type="password" class="form-control" name="newpassword" placeholder="New Password">
-</div><br>
-<div class="form-group">
-<input type="password" class="form-control" name="cpassword" placeholder="Confirm New Password">
-</div><br>
-<input type="hidden" id="key" name="key" value="<?php echo $_SESSION['key']; ?>">
-<input class="btn btn-danger w-100" type="submit" value="Change Password">
-</form>
-</div>
-<hr>-->
-<h4>API Management and Login Attempts</h3>
-        <div class="table-responsive">
-<table class="table">
+    </div>
+  </div>
+</nav>
+<div class="mt-4 text-white d-flex align-items-center justify-content-center">
+<div class="table-responsive">
+<table class="table table-dark">
   <thead>
     <tr>
       <th scope="col">API Key</th>
-      <th scope="col"></th>
+      <th scope="col">Action</th>
     </tr>
   </thead>
   <tbody>
@@ -182,14 +160,27 @@ $conn->close();
 
 
 ?>
-
   </tbody>
 </table>
-<div class="text-center">
+</div></div>
+<div class="mt-4 text-white d-flex align-items-center justify-content-center">
+<div>
 <a class="btn btn-primary" href="accmanager.php?genapi=1&key=<?php echo $_SESSION['key']; ?>">Generate API Key</a>
 <a class="btn btn-primary" href="accmanager.php?dlloginattempts=1&key=<?php echo $_SESSION['key'];?>">Download Login Attempts</a>
 </div>
-<br><br><hr><a class="btn btn-outline-danger w-100" href="/">Back to Homepage</a>
-        </main>
-    </body>
+</div>
+<?php
+$key = $_SESSION["key"];
+echo <<<EOL
+<div class="p-4 mt-2 d-flex align-items-center justify-content-center">
+<form method="post" action="index.php" class="col-sm-9 col-md-6 col-lg-8">
+<input type="hidden" id="lo" name="lo" value="$key">
+<input class="btn btn-outline-danger w-100" type="submit" value="Logout">
+</form>
+</div>
+<div class="mt-4 text-white d-flex align-items-center justify-content-center">
+<div>
+EOL;?>
+<script src="bootstrap.bundle.min.js"></script>
+</body>
 </html>
