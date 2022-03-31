@@ -44,6 +44,7 @@ I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 2
 # Todo: 
 
 * Ability to change DNS servers
+* Make it harder to flood POST requests on login page
 * Ability to change password
 * Maybe do something with DNS logs?
 * Support multiple accounts
