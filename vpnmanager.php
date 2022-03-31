@@ -124,7 +124,7 @@ Port must only be an integer
 </div>
 EOL;
 
-$_SESSION["err"] = -1;
+$_SESSION["err"] = 0;
 
 }
 ?>
