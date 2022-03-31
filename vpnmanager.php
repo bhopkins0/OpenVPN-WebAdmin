@@ -27,7 +27,7 @@ die();
 
 if (!ctype_digit($_POST["cport"])) {
 // Port provided contains characters aside from numbers
-$_SESSION["err"] = 1;
+$_SESSION["err"] = 2;
 header("Location: vpnmanager.php");
 die();
 }
@@ -40,7 +40,7 @@ $newport = $_POST["cport"];
     }
     $ssh->exec('/var/openvpn_scripts/changeport.sh '.$newport);
     $ssh->exec('service openvpn restart');
-    $_SESSION["err"] = 0;
+    $_SESSION["err"] = 1;
     $_SESSION["nport"] = $newport;
     header("Location: vpnmanager.php");
     die();
@@ -100,7 +100,7 @@ die();
   </div>
 </nav>
 <?php
-if ($_SESSION["err"] == 0) {
+if ($_SESSION["err"] == 1) {
 echo <<<EOL
 
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
@@ -112,9 +112,9 @@ echo <<<EOL
 EOL;
 
 unset($_SESSION["nport"]);
-$_SESSION["err"] = -1;
+$_SESSION["err"] = 0;
 }
-if ($_SESSION["err"] == 1) {
+if ($_SESSION["err"] == 2) {
 echo <<<EOL
 
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
@@ -125,6 +125,7 @@ Port must only be an integer
 EOL;
 
 $_SESSION["err"] = -1;
+
 }
 ?>
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
