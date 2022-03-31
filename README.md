@@ -43,9 +43,10 @@ I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 2
 
 # Todo: 
 
-* Ability to change DNS servers
+* Add ability to update the webadmin by clicking a button
 * Make it harder to flood POST requests on login page
-* Ability to change password
+* Add ability to change password
+* Add ability to change DNS servers
 * Maybe do something with DNS logs?
 * Support multiple accounts
 * Clean up code: indent, make comments, tidy up if statements, etc
