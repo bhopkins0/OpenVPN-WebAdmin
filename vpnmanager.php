@@ -50,7 +50,7 @@ $newport = $_POST["cport"];
 if (isset($_POST["startorstop"])) {
 
 if ($_POST["startorstop"] != $_SESSION['key']) {
-header("Location: vpnmanage.php");
+header("Location: vpnmanager.php");
 die();
 }
 
