@@ -22,14 +22,14 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
 
     // CN is not alphanumeric and is greater than 32
     if (strlen($commonname) > 32 || !preg_match("/^[A-Za-z0-9]*$/", $commonname)) {
-        $_SESSION["err"] = 0;
+        $_SESSION["err"] = 1;
         header("Location: manageclients.php");
         die();
     }
 
     // CN is blank
     if (strlen($commonname) < 1) {
-        $_SESSION["err"] = 1;
+        $_SESSION["err"] = 2;
         header("Location: manageclients.php");
         die();
     }
@@ -41,7 +41,7 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
     $result = mysqli_query($conn, $sql);
     if (mysqli_num_rows($result) > 0) {
         // The CN is already in use
-        $_SESSION["err"] = 2;
+        $_SESSION["err"] = 3;
         header("Location: manageclients.php");
         die();
     }
@@ -72,6 +72,8 @@ if (isset($_POST["commonname"]) && $_SESSION["auth"] == "1" && $_POST["key"] == 
 
 
 
+// Delete client
+
 if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION["key"]) {
     $commonname = $_GET["delconfig"];
     $conn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
@@ -81,7 +83,7 @@ if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_S
     $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
     $result = mysqli_query($conn, $sql);
     if (mysqli_num_rows($result) < 1) {
-        $_SESSION["err"] = 1;
+        // Needs error reporting
         header("Location: manageclients.php");
         die();
     }
@@ -101,7 +103,7 @@ if (isset($_GET["delconfig"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_S
         header("Location: manageclients.php");
         die();
     } else {
-        $_SESSION["err"] = 2;
+        // Needs error reporting
         header("Location: manageclients.php");
         die();
     }
@@ -117,7 +119,7 @@ if (isset($_GET["dl"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION[
     $sql = "SELECT cn FROM config WHERE cn='$commonname' AND status='active'";
     $result = mysqli_query($conn, $sql);
     if (mysqli_num_rows($result) < 1) {
-        $_SESSION["err"] = 3;
+        // Needs error reporting here
         header("Location: manageclients.php");
         die();
     }
@@ -172,7 +174,7 @@ if (isset($_GET["dl"]) && $_SESSION["auth"] == "1" && $_GET["key"] == $_SESSION[
   </div>
 </nav>
 <?php
-if ($_SESSION["err"] == 0) {
+if ($_SESSION["err"] == 1) {
 echo <<<EOL
 
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
@@ -182,9 +184,9 @@ CN must be alphanumeric and less than 32 characters
 </div>
 EOL;
 
-$_SESSION["err"] = -1;
+$_SESSION["err"] = 0;
 }
-if ($_SESSION["err"] == 1) {
+if ($_SESSION["err"] == 2) {
 echo <<<EOL
 
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
@@ -194,9 +196,9 @@ CN must not be blank
 </div>
 EOL;
 
-$_SESSION["err"] = -1;
+$_SESSION["err"] = 0;
 }
-if ($_SESSION["err"] == 2) {
+if ($_SESSION["err"] == 3) {
 echo <<<EOL
 
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
@@ -206,7 +208,7 @@ CN is already in use
 </div>
 EOL;
 
-$_SESSION["err"] = -1;
+$_SESSION["err"] = 0;
 }
 ?>
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
