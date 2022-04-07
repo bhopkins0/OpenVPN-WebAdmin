@@ -9,12 +9,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && strlen($_POST["api"]) == 32 && preg_
   $sql = "SELECT api FROM apikeys WHERE api='$api'";
   $result = mysqli_query($conn, $sql);
   if (mysqli_num_rows($result) < 1) {
-        echo $api;
     http_response_code(403);
     echo "<h1>403 - Forbidden</h1>";
     die();
   } else {
+    if ($operation == "downloadclient") {
+      $cn = $_POST["cn"];
+    // CN is not alphanumeric and is greater than 32
+    if (strlen($cn) > 32 || !preg_match("/^[A-Za-z0-9]*$/", $cn)) {
+        echo "Common name must be less than 32 characters and alphanumeric";
+        die();
+    }
 
+    // CN is blank
+    if (strlen($cn) < 1) {
+        echo "Common name must not be blank";
+        die();
+    }
+    $nconn = mysqli_connect($dbservername, $dbusername, $dbpassword, $dbname);
+    if (!$nconn) {
+        die("An error occurred.");
+    }
+    $nsql = "SELECT cn FROM config WHERE cn='$cn' AND status='active'";
+    $nresult = mysqli_query($nconn, $nsql);
+    if (mysqli_num_rows($nresult) == 0) {
+        // The CN not in use
+        echo "Invalid common name";
+        die();
+    }
+    mysqli_close($nconn);
+
+    $ssh = new Net_SSH2($vpnserver);
+    if (!$ssh->login($vpnserveruser, $vpnserverpw)) {
+        exit('Error');
+    }
+
+    // Download .ovpn file if it exists
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/octet-stream');
+    header("Content-disposition: attachment; filename=\"".$cn.".ovpn\"");
+    echo $ssh->exec('cat /var/openvpn_clients/'.$cn.'.ovpn');
+    die();
+
+
+    }
     if ($operation == "genclient") {
       $cn = $_POST["cn"];
     // CN is not alphanumeric and is greater than 32
@@ -64,6 +102,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && strlen($_POST["api"]) == 32 && preg_
     die();
 
     }
+
+
   }
   $conn->close();
 
