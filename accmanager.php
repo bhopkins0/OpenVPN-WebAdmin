@@ -123,7 +123,7 @@ if ($_GET["genapi"] === "1" && $_SESSION["auth"] == "1" && $_GET["key"] == $_SES
         </li>
 
       </ul>
-      <ul class="navbar-nav mb-2 mb-lg-0">
+root@vps-7cd486b5:/var/www/vpnadmin#
         <li class="nav-item">
           <a class="nav-link active" href="accmanager.php">WebAdmin Manager</a>
         </li>
@@ -167,6 +167,9 @@ $conn->close();
 <div>
 <a class="btn btn-primary" href="accmanager.php?genapi=1&key=<?php echo $_SESSION['key']; ?>">Generate API Key</a>
 <a class="btn btn-primary" href="accmanager.php?dlloginattempts=1&key=<?php echo $_SESSION['key'];?>">Download Login Attempts</a>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal">
+  Update Webadmin
+</button>
 </div>
 </div>
 <?php
@@ -181,6 +184,24 @@ echo <<<EOL
 <div class="mt-4 text-white d-flex align-items-center justify-content-center">
 <div>
 EOL;?>
+
+<div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modallabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-dark" id="modallabel">Update WebAdmin</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-dark">This update tool will retrieve the latest files from GitHub and replace the current ones. If the tool doesn't work, run the following command in the web directory: <pre class="text-center text-dark">chown www-data:www-data *</pre></p>
+        <a class="btn btn-outline-danger w-100" href="update.php?key=<?php echo $_SESSION['key']; ?>">I understand, proceed with the update</a>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Exit</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="bootstrap.bundle.min.js"></script>
 </body>
 </html>
