@@ -34,7 +34,7 @@ As of version 0.7, the webadmin has the following features:
 I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 20.04. 
 
 
-0. Install LEMP stack  and set up MySQL (create database and user for the webadmin)
+0. Install LEMP stack and set up MySQL (create database and user for the webadmin)
 1. Install OpenVPN on a separate server using the [OpenVPN Installer for Webadmin](https://github.com/bhopkins0/OpenVPN-Installer-For-Webadmin). **This is required to ensure compatibility.**
 2. Clone this git into your webdirectory and run `chown -R www-data:www-data /var/www/YOUR_WEB_DIR/`
 3. Go to the installation page in a web browser (installation.php)
@@ -43,7 +43,6 @@ I have only tested this on LEMP stacks (PHP 7.4 and PHP 8.0) running Ubuntu >= 2
 
 # Todo: 
 
-* Add ability to update the webadmin by clicking a button
 * Make it harder to flood POST requests on login page
 * Add ability to change password
 * Add ability to change DNS servers
