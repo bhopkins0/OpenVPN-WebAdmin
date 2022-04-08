@@ -123,7 +123,8 @@ if ($_GET["genapi"] === "1" && $_SESSION["auth"] == "1" && $_GET["key"] == $_SES
         </li>
 
       </ul>
-root@vps-7cd486b5:/var/www/vpnadmin#
+        
+      <ul class="navbar-nav mb-2 mb-lg-0">
         <li class="nav-item">
           <a class="nav-link active" href="accmanager.php">WebAdmin Manager</a>
         </li>
